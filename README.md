@@ -22,6 +22,10 @@ Our **full-stack system** integrates [EgoSmith](https://github.com/egosteer/egos
 This repository is **EgoSmith**, an egocentric data pipeline that curates in-the-wild **egocentric videos** into clean, fully-annotated training data for steerable **dexterous manipulation**. It runs **~9× faster than HaWoR** through window batching and overlapped
 CPU-decode / GPU-compute.
 
+We release EgoSmith annotations in LeRobot v3 format, including hand poses,
+camera trajectories, language instructions, and source-frame mappings.
+The releases contain no RGB images or depth maps.
+
 <p align="center">
   <img src="assets/overview.png" width="100%">
 </p>
@@ -73,6 +77,48 @@ pip install -e .
 
 See [docs/install.md](docs/install.md) for the manual step-by-step and troubleshooting.
 
+## Released Datasets
+
+EgoSmith annotations are released in **LeRobot v3 format**, with one dataset
+per source collection. Each release contains:
+
+- 74D states and actions, with robot joint fields `[0:26]` padded.
+- Hand-presence flags and per-frame head-camera poses.
+- Task text and episode-level candidate instructions.
+- Source-media identifiers and frame indices for recovering RGB frames.
+
+The releases contain **no RGB images or depth maps**. Obtain the original
+media from the source dataset under its terms. Where source mappings are
+available, use `source_media` and `source_frame_index` to locate the images,
+and resize them to `calibration/head_image_size`.
+
+Labels are sampled at 30 fps. `source_frame_observed` distinguishes directly
+observed labels from labels interpolated between observed frames.
+
+By default, hand poses are expressed in the current frame's head-camera
+coordinates. Actions describe the next-frame hand pose in that same
+coordinate frame.
+
+### Loading annotations
+
+```python
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
+
+dataset = LeRobotDataset(
+    repo_id="local/egosmith_labels",
+    root="/path/to/dataset",
+)
+sample = dataset[0]
+
+sample["observation.state"]   # [74]
+sample["action"]              # [74]
+sample["task"]                # Language instruction
+sample["source_frame_index"]  # Frame index in the original media
+```
+
+See each dataset's README, `meta/release.json`, and `LICENSES/` for its
+source-media access instructions and license terms.
+
 ## Quickstart
 
 **1. Curate a single video into a trainable WebDataset**
@@ -87,6 +133,9 @@ This extracts frames, runs the HaWoR / DPVO / Any4D stages, filters, builds the 
 validates the outputs. Language annotation is optional, so empty instruction fields are valid here.
 The output is a WebDataset of per-frame samples; its layout and the 116-d `lowdim` fields are
 described in [docs/dataset_format.md](docs/dataset_format.md).
+
+This command produces WebDataset shards. For the published LeRobot
+annotations, see [Released Datasets](#released-datasets).
 
 **2. See it work on the bundled example**
 
