@@ -30,6 +30,11 @@ The releases contain no RGB images or depth maps.
   <img src="assets/overview.png" width="100%">
 </p>
 
+## News
+
+- **2026-09-23**: **📦 Dataset release:** the egocentric human dataset curated with this pipeline for [EgoSteer](https://github.com/egosteer/egosteer) pretraining, with **10,000 hours selected from 100,000 hours of raw videos**, is open-sourced on Hugging Face as [**EgoSteer/EgoSteer-Egocentric**](https://huggingface.co/datasets/EgoSteer/EgoSteer-Egocentric) (LeRobot v3 format; annotations only).
+- **2026-09-15**: **📦 Dataset release:** the complementary 192-hour, 193-task real-robot dataset collected with [Robot Stack](https://github.com/egosteer/robot-stack) for [EgoSteer](https://github.com/egosteer/egosteer) post-training is open-sourced on Hugging Face as [**EgoSteer/EgoSteer-RealWorld**](https://huggingface.co/datasets/EgoSteer/EgoSteer-RealWorld) (LeRobot v3 format).
+
 ## Pipeline
 
 1. **Pre-filtering**: discard locomotion, occlusion, and bystander hands (optical-flow ego-motion
