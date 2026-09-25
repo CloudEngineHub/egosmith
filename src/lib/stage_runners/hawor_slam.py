@@ -446,6 +446,11 @@ def hawor_slam(
         os.remove(dpvo_npz_path)
         vprint("HAWOR_DPVO_FORCE_RERUN=1: removed cached dpvo_raw, will rerun DPVO.")
 
+    from lib.pipeline.slam.dpvo_slam import DPVO_DISP_RASTER_VERSION, dpvo_cache_is_stale
+    if os.path.exists(dpvo_npz_path) and dpvo_cache_is_stale(dpvo_npz_path):
+        os.remove(dpvo_npz_path)
+        vprint(f"DPVO cache predates disparity raster v{DPVO_DISP_RASTER_VERSION}: removed dpvo_raw, will rerun DPVO.")
+
     # Run DPVO VO in the current process (lazy import to avoid loading DPVO unless this path runs).
     dpvo_ran_fresh = not os.path.exists(dpvo_npz_path)
     if dpvo_ran_fresh:
@@ -465,6 +470,7 @@ def hawor_slam(
             tstamp_disps=tstamp_disps,
             dpvo_vo_wall_sec=_dpvo_sec,
             dpvo_subprocess_sec=_dpvo_sec,
+            disp_raster_version=np.array([DPVO_DISP_RASTER_VERSION], dtype=np.int32),
         )
         try:
             torch.cuda.empty_cache()
@@ -610,7 +616,9 @@ def hawor_slam(
     disps = disps_metric
     traj = traj_full.astype(np.float32)
 
-    slam_depth_list = [1.0 / disps[int(i)] for i in kf_idx]
+    # Sparse DPVO disparity: disp=0 -> inf depth, excluded inside est_scale_*.
+    with np.errstate(divide="ignore"):
+        slam_depth_list = [1.0 / disps[int(i)] for i in kf_idx]
     mask_list = [masks[int(tstamp_metric[i])].numpy().astype(np.uint8) for i in kf_idx]
 
     scales_ = est_scale_hybrid_batch(

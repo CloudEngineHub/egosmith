@@ -46,3 +46,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 include = ["lib*", "infiller*", "pypose*"]
 namespaces = true
+
+[tool.setuptools.package-data]
+# Canonical SPDX licence texts attached to LeRobot releases (lib/pipeline/exporters/lerobot_release.py).
+"lib.pipeline.exporters" = ["licenses/*.txt"]

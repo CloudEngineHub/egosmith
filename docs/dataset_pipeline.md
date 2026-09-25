@@ -41,9 +41,13 @@ ships only the single-video example config (multi-dataset processing configs are
 - `filter`: build-equivalent clip quality control before export
 - `build`: final WebDataset export
 - `validate`: source and dataset checks
+- `lerobot` (optional, opt-in): convert the built WebDataset into a LeRobot v3.0 dataset
+  (`scripts/build/wds_to_lerobot.py`; see [dataset_format.md](dataset_format.md))
 
 Default stages are `prepare,infer,filter,build,validate`. `annotate` is inserted automatically only
-when `annotation.command` is configured. `--stages` can be used for debugging or resume runs.
+when `annotation.command` is configured; `lerobot` never is — add it explicitly
+(`--stages build,validate,lerobot`, or `--stages lerobot` on a finished run). `--stages` can be used
+for debugging or resume runs.
 
 ## Config Shape
 
@@ -57,6 +61,18 @@ output_root: /optional/output_root
 annotation:
   command: >
     echo "Read {prepared_state} and write annotations to {annotation_root}"
+```
+
+Optional LeRobot export (only used when `lerobot` is in `--stages`; every key is forwarded to
+`scripts/build/wds_to_lerobot.py`, `output_dir` defaults to `<output_root>/lerobot`, `fps` to
+`build.target_fps`):
+
+```yaml
+lerobot:
+  hand_frame: camera        # camera | world
+  state_layout: egosteer74  # egosteer74 | hawor48
+  task_source: language
+  validate: true            # structural checks + no-depth guard after conversion
 ```
 
 Notes:
@@ -122,7 +138,7 @@ python scripts/run_dataset_pipeline.py \
 Or directly:
 
 ```bash
-python scripts/inspection/validate_pipeline_run.py \
+python scripts/validate_pipeline_run.py \
   --dataset_dir /path/to/final_dataset \
   --max_clips 200 \
   --dataset_sample_checks 20
@@ -141,9 +157,9 @@ Recommended smoke pass before a large run:
 
 ```bash
 # overlay the reconstructed hands back onto the video, via direct K-projection
-python scripts/inspection/overlay_hand_cam.py --seq_folder /path/to/output_root/.../<clip>
+python scripts/overlay_hand_cam.py --seq_folder /path/to/output_root/.../<clip>
 # inspect a batch run directory and print a report
-python scripts/inspection/analyze_run.py /path/to/run_dir
+python scripts/analyze_run.py /path/to/run_dir
 ```
 
 **End-to-end single-video reconstruction + hand overlay** (`demo.py`). It runs detect → motion →

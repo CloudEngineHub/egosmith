@@ -84,6 +84,8 @@ def new_clip_quality_stats(
         "_prev_right_fingers": None,
         "_prev_left_rot": None,
         "_prev_right_rot": None,
+        "_prev_left_visible": False,
+        "_prev_right_visible": False,
         "_prev_extrinsic": None,
         "_prev_finite": False,
     }
@@ -280,43 +282,56 @@ def update_clip_quality_stats(
         prev_idx = stats["_prev_frame_idx"]
         curr_left_rot = _rot6d_to_rotmat(lowdim_array[LEFT_ROOT_ROT6D_SLICE])
         curr_right_rot = _rot6d_to_rotmat(lowdim_array[RIGHT_ROOT_ROT6D_SLICE])
+        left_visible = bool(int(presence) & 1)
+        right_visible = bool(int(presence) & 2)
         if stats["_prev_finite"] and prev_idx is not None:
             frame_gap = max(1, int(frame_idx) - int(prev_idx))
-            left_step = float(np.linalg.norm(current_left - stats["_prev_left"]) / frame_gap)
-            right_step = float(np.linalg.norm(current_right - stats["_prev_right"]) / frame_gap)
-            # Per-fingertip displacement; take the largest fingertip step across both hands.
-            left_finger_step = float(
-                np.linalg.norm(left_fingertips - stats["_prev_left_fingers"], axis=1).max() / frame_gap
-            )
-            right_finger_step = float(
-                np.linalg.norm(right_fingertips - stats["_prev_right_fingers"], axis=1).max() / frame_gap
-            )
             prev_rot = stats["_prev_extrinsic"][:3, :3]
             prev_trans = stats["_prev_extrinsic"][:3, 3]
             curr_rot = current_extrinsic[:3, :3]
             curr_trans = current_extrinsic[:3, 3]
             camera_translation_step = float(np.linalg.norm(curr_trans - prev_trans) / frame_gap)
             camera_rotation_step = float(np.linalg.norm((curr_rot - prev_rot).reshape(-1)) / frame_gap)
+
+            # Hand/finger/wrist steps are scored only across frame pairs where that
+            # hand is visible in BOTH frames. Hand-absent segments hold infilled
+            # (synthetic) poses that downstream consumers mask via the presence
+            # flags, so their jumps must not veto the clip; a visibility gap also
+            # never bridges into a fake "step" when the hand re-appears.
+            hand_steps = []
+            finger_steps = []
             # Wrist (root) rotation step: Frobenius norm of the per-frame root-rotation delta, max
             # over both hands. Same metric family as camera_rotation_step, so the threshold maps the
             # same way (||R1-R2||_F = 2*sqrt(2)*sin(theta/2)); paper cap is 41 deg/frame (~0.99).
-            left_wrist_rotation_step = float(
-                np.linalg.norm((curr_left_rot - stats["_prev_left_rot"]).reshape(-1)) / frame_gap
-            )
-            right_wrist_rotation_step = float(
-                np.linalg.norm((curr_right_rot - stats["_prev_right_rot"]).reshape(-1)) / frame_gap
-            )
+            wrist_rotation_steps = []
+            if left_visible and stats["_prev_left_visible"]:
+                hand_steps.append(float(np.linalg.norm(current_left - stats["_prev_left"]) / frame_gap))
+                # Per-fingertip displacement; take the largest fingertip step.
+                finger_steps.append(
+                    float(np.linalg.norm(left_fingertips - stats["_prev_left_fingers"], axis=1).max() / frame_gap)
+                )
+                wrist_rotation_steps.append(
+                    float(np.linalg.norm((curr_left_rot - stats["_prev_left_rot"]).reshape(-1)) / frame_gap)
+                )
+            if right_visible and stats["_prev_right_visible"]:
+                hand_steps.append(float(np.linalg.norm(current_right - stats["_prev_right"]) / frame_gap))
+                finger_steps.append(
+                    float(np.linalg.norm(right_fingertips - stats["_prev_right_fingers"], axis=1).max() / frame_gap)
+                )
+                wrist_rotation_steps.append(
+                    float(np.linalg.norm((curr_right_rot - stats["_prev_right_rot"]).reshape(-1)) / frame_gap)
+                )
 
-            stats["max_hand_translation_step"] = max(
-                stats["max_hand_translation_step"],
-                left_step,
-                right_step,
-            )
-            stats["max_finger_translation_step"] = max(
-                stats["max_finger_translation_step"],
-                left_finger_step,
-                right_finger_step,
-            )
+            if hand_steps:
+                stats["max_hand_translation_step"] = max(
+                    stats["max_hand_translation_step"],
+                    *hand_steps,
+                )
+            if finger_steps:
+                stats["max_finger_translation_step"] = max(
+                    stats["max_finger_translation_step"],
+                    *finger_steps,
+                )
             stats["max_camera_translation_step"] = max(
                 stats["max_camera_translation_step"],
                 camera_translation_step,
@@ -325,11 +340,11 @@ def update_clip_quality_stats(
                 stats["max_camera_rotation_step"],
                 camera_rotation_step,
             )
-            stats["max_wrist_rotation_step"] = max(
-                stats["max_wrist_rotation_step"],
-                left_wrist_rotation_step,
-                right_wrist_rotation_step,
-            )
+            if wrist_rotation_steps:
+                stats["max_wrist_rotation_step"] = max(
+                    stats["max_wrist_rotation_step"],
+                    *wrist_rotation_steps,
+                )
             # Episode-level camera-motion accumulators (mean per-frame magnitude -> dataset IQR).
             stats["_camera_translation_step_sum"] += camera_translation_step
             stats["_camera_rotation_step_sum"] += camera_rotation_step
@@ -342,6 +357,8 @@ def update_clip_quality_stats(
         stats["_prev_right_fingers"] = right_fingertips
         stats["_prev_left_rot"] = curr_left_rot
         stats["_prev_right_rot"] = curr_right_rot
+        stats["_prev_left_visible"] = left_visible
+        stats["_prev_right_visible"] = right_visible
         stats["_prev_extrinsic"] = current_extrinsic
         stats["_prev_finite"] = True
     else:
@@ -352,6 +369,8 @@ def update_clip_quality_stats(
         stats["_prev_right_fingers"] = None
         stats["_prev_left_rot"] = None
         stats["_prev_right_rot"] = None
+        stats["_prev_left_visible"] = False
+        stats["_prev_right_visible"] = False
         stats["_prev_extrinsic"] = None
         stats["_prev_finite"] = False
 

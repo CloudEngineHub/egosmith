@@ -37,6 +37,7 @@ from lib.pipeline.proc.stage_api import get_stage_done_marker
 from .cli import get_parser
 from .constants import BATCH_INFER_NEGATIVE_BOOL_FLAGS, MULTIHOST_DISALLOWED_INFER_KEYS, OFFICIAL_STAGE_ORDER
 from .helpers import cli_args_from_mapping, format_annotation_command, load_yaml, stream_command
+from .lerobot_stage import build_lerobot_stage_command
 from .stage_selection import selected_stages
 from .validation import (
     infer_stage_worker_count_per_gpu,
@@ -246,6 +247,7 @@ def run_pipeline(args) -> None:
     adapter_cfg = config.get("adapter_config", {})
     annotation_cfg = config.get("annotation", {})
     validation_cfg = config.get("validation", {})
+    lerobot_cfg = config.get("lerobot", {})
     cli_resume = getattr(args, "resume", None)
     effective_resume = _resolve_effective_resume(cli_resume, config)
     adapter_cfg.setdefault("resume", effective_resume)
@@ -258,6 +260,7 @@ def run_pipeline(args) -> None:
         build_cfg=build_cfg,
         filter_cfg=filter_cfg,
         validation_cfg=validation_cfg,
+        lerobot_cfg=lerobot_cfg,
     )
 
     run_root = Path(paths_cfg.get("log_root", PROJECT_ROOT / "pipeline_runs"))
@@ -1016,6 +1019,25 @@ def run_pipeline(args) -> None:
         if bool(validation_cfg.get("depth_action_consistency", False)) and not validation_cfg.get("depth_action_report_out"):
             validate_cmd.extend(["--depth_action_report_out", str(run_dir / "depth_action_consistency.json")])
         run_logged("validate", validate_cmd)
+
+    if "lerobot" in stages:
+        # Optional adapter stage: WebDataset shards -> LeRobot v3.0 (scripts/build/wds_to_lerobot.py).
+        ensure_manifest_exists("lerobot", active_manifest_path)
+        if not final_dataset_root.exists():
+            raise RuntimeError(f"lerobot requires built WebDataset shards, none found at {final_dataset_root}. Run `--stages build` first.")
+        lerobot_cmd, lerobot_root = build_lerobot_stage_command(
+            python=hawor_python,
+            project_root=PROJECT_ROOT,
+            final_dataset_root=final_dataset_root,
+            active_manifest_path=active_manifest_path,
+            paths_cfg=paths_cfg,
+            build_cfg=config.get("build", build_cfg),
+            lerobot_cfg=lerobot_cfg,
+            resume=effective_resume,
+        )
+        run_logged("lerobot", lerobot_cmd)
+        run_summary["lerobot_root"] = _resolved_path_string(lerobot_root)
+        summary_path.write_text(json.dumps(run_summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"\nRun complete: {run_dir}")
 

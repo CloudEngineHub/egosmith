@@ -11,8 +11,8 @@ the batch-inference path, and the visualization code.
   - `src/infiller/`, `src/hawor/` — obtained HaWoR base, materialized here (see below).
 - `scripts/` — runnable CLIs only (no library code). Pipeline entrypoints at the top level
   (`run_dataset_pipeline.py`, `batch_infer.py`, `extract_frames.py`); the rest grouped into
-  `scripts/setup/` (env / weights / provisioning), `scripts/build/` (manifest / WebDataset build,
-  downstream stages), and `scripts/inspection/` (validation / visualization). See `scripts/README.md`.
+  `scripts/setup/` (env / weights / provisioning) and `scripts/build/` (manifest / WebDataset build
+  and downstream stages). See `scripts/README.md`.
 - `configs/` — example configs (see `configs/README.md`).
 - `docs/` — documentation.
 - `thirdparty/` — vendored `DPVO`, plus the `Any4D` and `hawor_upstream` git submodules. The
@@ -47,7 +47,7 @@ Single-video inference + visualization:
 
 - `demo.py` — end-to-end single-video reconstruction + OpenCV 3D render (headless-friendly).
 - Viewer / visualization code: `src/lib/vis/`
-- Dependency-light overlay: `scripts/inspection/overlay_hand_cam.py`
+- Dependency-light overlay: `scripts/overlay_hand_cam.py`
 
 ## Public Scripts
 
@@ -57,9 +57,12 @@ The maintained entrypoints:
 - `scripts/batch_infer.py` — multi-GPU batch inference.
 - `scripts/extract_frames.py` — extract frames from a video.
 - `scripts/build/build_vla_from_manifest.py` — build the final WebDataset from a frozen manifest.
-- `scripts/inspection/validate_pipeline_run.py`, `scripts/inspection/check_motion_stage_outputs.py`,
+- `scripts/build/wds_to_lerobot.py` — convert built shards to LeRobot v3.0 (see `docs/dataset_format.md`).
+- `scripts/build/wds_to_lerobot_batch.py` — batch conversion + verification driver (release tiers / licence bundle).
+- `scripts/build/lerobot_rehydrate_video.py` — rehydrate a labels-only export.
+- `scripts/validate_pipeline_run.py`, `scripts/check_motion_stage_outputs.py`,
   `scripts/build/filter_manifest_by_quality.py` — output validation / filtering.
-- `scripts/inspection/overlay_hand_cam.py`, `scripts/inspection/analyze_run.py` — visualization / run inspection.
+- `scripts/overlay_hand_cam.py`, `scripts/analyze_run.py` — visualization / run inspection.
 - `scripts/setup/setup_env.sh`, `scripts/setup/validate_setup.sh`, `scripts/setup/download_weights.sh`,
   `scripts/setup/fetch_hawor_base.sh`, `scripts/setup/fetch_chumpy.sh`, `scripts/setup/provision_worktree.sh` — setup.
 

@@ -10,7 +10,9 @@ from .constants import MULTIHOST_DISALLOWED_INFER_KEYS
 from .helpers import parser_supported_option_dests, validate_cli_mapping_keys
 
 
-def validate_pipeline_cli_alignment(*, stages: list[str], infer_cfg: dict, build_cfg: dict, filter_cfg: dict, validation_cfg: dict) -> None:
+def validate_pipeline_cli_alignment(
+    *, stages: list[str], infer_cfg: dict, build_cfg: dict, filter_cfg: dict, validation_cfg: dict, lerobot_cfg: dict | None = None
+) -> None:
     errors = []
 
     if any(stage in stages for stage in ("detect_motion", "slam", "infiller")):
@@ -72,7 +74,7 @@ def validate_pipeline_cli_alignment(*, stages: list[str], infer_cfg: dict, build
         )
 
     if "validate" in stages:
-        from scripts.inspection.validate_pipeline_run import get_parser as get_validate_parser
+        from scripts.validate_pipeline_run import get_parser as get_validate_parser
 
         validate_supported = parser_supported_option_dests(get_validate_parser())
         validate_reserved = {"descriptor_manifest", "dataset_dir", "annotation_root", "annotation_suffix"}
@@ -82,6 +84,21 @@ def validate_pipeline_cli_alignment(*, stages: list[str], infer_cfg: dict, build
                 mapping=validation_cfg,
                 supported_keys=validate_supported,
                 reserved_keys=validate_reserved,
+            )
+        )
+
+    if "lerobot" in stages:
+        from scripts.build.wds_to_lerobot import get_parser as get_lerobot_parser
+
+        from .lerobot_stage import LEROBOT_RESERVED_KEYS
+
+        lerobot_supported = parser_supported_option_dests(get_lerobot_parser())
+        errors.extend(
+            validate_cli_mapping_keys(
+                label="lerobot",
+                mapping=lerobot_cfg,
+                supported_keys=lerobot_supported,
+                reserved_keys=LEROBOT_RESERVED_KEYS - {"output_dir"},  # output_dir is resolved by the stage, the rest is reserved
             )
         )
 

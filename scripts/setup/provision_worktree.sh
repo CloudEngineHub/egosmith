@@ -84,7 +84,7 @@ fi
 # Stage-3 scratch root is never defaulted (can write many GB). Remind, don't guess.
 if [ -z "${HAWOR_BATCH_TMPDIR:-}${HAWOR_STAGE3_TMP_ROOT:-}" ]; then
     echo "[provision] NOTE: set a large-disk scratch root before running the slam stage, e.g.:"
-    echo "    export HAWOR_BATCH_TMPDIR=/efs-exp/<user>/tmp"
+    echo "    export HAWOR_BATCH_TMPDIR=/path/to/scratch/tmp"
 else
     echo "[provision] scratch root OK: HAWOR_BATCH_TMPDIR=${HAWOR_BATCH_TMPDIR:-} HAWOR_STAGE3_TMP_ROOT=${HAWOR_STAGE3_TMP_ROOT:-}"
 fi

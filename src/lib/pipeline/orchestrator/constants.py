@@ -7,6 +7,7 @@ OFFICIAL_STAGE_ORDER = [
     "filter",
     "build",
     "validate",
+    "lerobot",  # optional: WebDataset -> LeRobot v3.0 export, never part of the default stage string
 ]
 
 INTERNAL_STAGE_ORDER = [
@@ -20,6 +21,7 @@ INTERNAL_STAGE_ORDER = [
     "filter",
     "build",
     "validate",
+    "lerobot",
 ]
 
 STAGE_ALIAS_MAP = {

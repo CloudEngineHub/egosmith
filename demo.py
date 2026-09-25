@@ -4,7 +4,7 @@ Single-video reconstruction + visualization for EgoSmith — works on any headle
 
 Runs detect -> motion -> SLAM -> infiller on one video, then overlays the reconstructed world-space
 hands back onto each frame with OpenCV (a direct pinhole K-projection — no OpenGL / pyrender /
-aitviewer) and writes an mp4. This is the same projection as scripts/inspection/overlay_hand_cam.py
+aitviewer) and writes an mp4. This is the same projection as scripts/overlay_hand_cam.py
 (which works from a finished run); demo.py just runs the whole pipeline first.
 
 Reads pre-extracted frames, so run `python scripts/extract_frames.py --video_path <video>` first.
@@ -39,7 +39,7 @@ from lib.stage_runners.hawor_video import hawor_infiller, hawor_motion_estimatio
 def project_to_image(vertices, R_w2c, t_w2c, focal, cx, cy):
     """World verts (N,3) -> (N,3) of (u, v, depth) via the SLAM camera + pinhole K.
 
-    Matches scripts/inspection/overlay_hand_cam.py: a plain pinhole projection using the SLAM-recorded
+    Matches scripts/overlay_hand_cam.py: a plain pinhole projection using the SLAM-recorded
     focal and principal point (img_focal / img_center) — not an image-center approximation.
     """
     cam = vertices @ R_w2c.T + t_w2c

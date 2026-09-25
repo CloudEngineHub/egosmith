@@ -11,7 +11,7 @@ without re-running reconstruction or any renderer, and the projected hand lands
 exactly where the pipeline placed it — so it faithfully reflects pipeline output.
 
 Usage:
-    python scripts/inspection/overlay_hand_cam.py --seq_folder /path/to/stage_outputs/<video>
+    python scripts/overlay_hand_cam.py --seq_folder /path/to/stage_outputs/<video>
     # writes <seq_folder>/overlay_hand_cam.mp4
 
 The seq folder must contain (produced by the infer stage):
@@ -31,7 +31,7 @@ import numpy as np
 import torch
 
 # Run from anywhere: put src/ (first-party packages) and the repo root on sys.path.
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 for _p in (os.path.join(_PROJECT_ROOT, "src"), _PROJECT_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)

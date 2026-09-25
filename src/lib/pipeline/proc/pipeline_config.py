@@ -24,6 +24,7 @@ _OFFICIAL_TOP_LEVEL_KEYS = {
     "build",
     "filter",
     "validation",
+    "lerobot",
 }
 
 _SINGLE_VIDEO_TOP_LEVEL_KEYS = {
@@ -38,6 +39,7 @@ _SINGLE_VIDEO_TOP_LEVEL_KEYS = {
     "validation",
     "infer",
     "adapter_config",
+    "lerobot",
 }
 
 _LEGACY_TOP_LEVEL_KEYS = {
@@ -152,6 +154,7 @@ def _apply_shared_nested_defaults(
     infer_cfg: dict,
     schema: str,
     migration_warnings: list[str] | None = None,
+    lerobot_cfg: dict | None = None,
 ) -> dict:
     adapter_name = dataset_cfg.get("adapter") or "buildai"
     dataset_cfg.setdefault("adapter", adapter_name)
@@ -220,6 +223,7 @@ def _apply_shared_nested_defaults(
         "build": build_cfg,
         "filter": filter_cfg,
         "validation": validation_cfg,
+        "lerobot": dict(lerobot_cfg or {}),
         "_meta": {
             "schema": schema,
             "migration_warnings": list(migration_warnings or []),
@@ -240,6 +244,7 @@ def _normalize_nested_pipeline_config(raw: dict) -> dict:
     clip_cfg = _ensure_mapping(raw, "clip")
     adapter_cfg = _ensure_mapping(raw, "adapter_config")
     infer_cfg = _ensure_mapping(raw, "infer")
+    lerobot_cfg = _ensure_mapping(raw, "lerobot")
 
     return _apply_shared_nested_defaults(
         raw=raw,
@@ -254,6 +259,7 @@ def _normalize_nested_pipeline_config(raw: dict) -> dict:
         adapter_cfg=adapter_cfg,
         infer_cfg=infer_cfg,
         schema="nested",
+        lerobot_cfg=lerobot_cfg,
         migration_warnings=[
             "Nested dataset-pipeline configs remain supported, but the preferred first-party schema is now `video: ...` plus optional `output_root:`."
         ],
@@ -282,6 +288,7 @@ def _normalize_single_video_pipeline_config(raw: dict, *, base_dir: Path | None)
     filter_cfg = _ensure_mapping(raw, "filter")
     validation_cfg = _ensure_mapping(raw, "validation")
     infer_cfg = _ensure_mapping(raw, "infer")
+    lerobot_cfg = _ensure_mapping(raw, "lerobot")
 
     frames_root = output_root / "frames"
     stage_outputs_root = output_root / "stage_outputs"
@@ -345,6 +352,7 @@ def _normalize_single_video_pipeline_config(raw: dict, *, base_dir: Path | None)
         adapter_cfg=adapter_cfg,
         infer_cfg=infer_cfg,
         schema="single_video",
+        lerobot_cfg=lerobot_cfg,
     )
     normalized["_meta"].update(
         {

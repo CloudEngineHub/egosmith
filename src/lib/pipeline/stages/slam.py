@@ -34,7 +34,7 @@ from lib.pipeline.hands.hand_metric_anchor import (
     hand_anchor_alpha_enabled,
     hand_anchor_enabled,
 )
-from lib.pipeline.slam.dpvo_slam import run_dpvo_slam
+from lib.pipeline.slam.dpvo_slam import DPVO_DISP_RASTER_VERSION, run_dpvo_slam, dpvo_cache_is_stale
 from lib.pipeline.hands.est_scale_batch import est_scale_hybrid_batch, est_scale_hybrid_gpu
 from lib.pipeline.io.frame_source import ImageFolderFrameSource, build_frame_source
 from lib.pipeline.io.intrinsics import resolve_calibration
@@ -246,6 +246,10 @@ def _run_dpvo_with_cache(frame_source, masks, calib, seq_folder: str, start_idx:
         os.remove(cache_path)
         vprint("HAWOR_DPVO_FORCE_RERUN=1: removed cached dpvo_raw, will rerun DPVO.")
 
+    if os.path.exists(cache_path) and dpvo_cache_is_stale(cache_path):
+        os.remove(cache_path)
+        vprint(f"DPVO cache predates disparity raster v{DPVO_DISP_RASTER_VERSION}: removed dpvo_raw, will rerun DPVO.")
+
     ran_fresh = not os.path.exists(cache_path)
     if ran_fresh:
         t0 = time.time()
@@ -260,6 +264,7 @@ def _run_dpvo_with_cache(frame_source, masks, calib, seq_folder: str, start_idx:
             tstamp_disps=np.asarray(disp_tstamp, dtype=np.int32),
             dpvo_vo_wall_sec=wall_sec,
             dpvo_subprocess_sec=wall_sec,
+            disp_raster_version=np.array([DPVO_DISP_RASTER_VERSION], dtype=np.int32),
         )
         torch.cuda.empty_cache()
 
@@ -656,7 +661,10 @@ def _estimate_scale(disps, pred_depths, masks, tstamp):
     min_threshold = 0.4
     max_threshold = 0.7
 
-    slam_depth_list = [1.0 / disps[i] for i in range(len(tstamp))]
+    # DPVO disparity maps are sparse (disp=0 where no patch landed); 1/0 -> inf is
+    # intentional and est_scale_* drops those pixels via _valid_slam_depth.
+    with np.errstate(divide="ignore"):
+        slam_depth_list = [1.0 / disps[i] for i in range(len(tstamp))]
     mask_list = [masks[int(frame_idx)].cpu().numpy().astype(np.uint8) for frame_idx in tstamp]
     scales_ = est_scale_hybrid_batch(
         slam_depth_list,
