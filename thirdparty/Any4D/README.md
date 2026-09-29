@@ -1,6 +1,6 @@
 <div align="center">
 <h1>Any4D: Unified Feed-Forward Metric <br>4D Reconstruction</h1>
-<a href="assets/Any4D.pdf"><img src="https://img.shields.io/badge/Paper-blue" alt="Paper"></a>
+<a href="https://arxiv.org/pdf/2512.10935"><img src="https://img.shields.io/badge/Paper-blue" alt="Paper"></a>
 <a href="https://arxiv.org/abs/2512.10935"><img src="https://img.shields.io/badge/arXiv-b31b1b" alt="arXiv"></a>
 <a href="https://any-4d.github.io/"><img src="https://img.shields.io/badge/Project_Page-green" alt="Project Page"></a>
 <a href="https://github.com/Any-4D/Any4D"><img src="https://img.shields.io/badge/GitHub-Code-black" alt="Code"></a>
@@ -36,7 +36,7 @@
 • Feed-forward • Dense • Metric-scale • Multi-modal  
 4D reconstruction of dynamic scenes from RGB videos and diverse setups.
 
-<img src="./assets/any4d_teaser_gif.gif" width="1000">
+<img src="https://raw.githubusercontent.com/Any-4D/Any4D/main/assets/any4d_teaser_gif.gif" width="1000">
 
 </div>
 
@@ -119,7 +119,7 @@ rerun serve --port 9877
 python scripts/demo_inference.py --video_images_folder_path assets/stroller --viz --port 9877
 ```
 
-We provide multiple examples at [assets/example_images](assets/example_images). Please look at [Rerun Demo](#rerun-demo) for more control over visualization.
+We provide multiple examples at [assets/example_images](https://github.com/Any-4D/Any4D/tree/main/assets/example_images). Please look at [Rerun Demo](#rerun-demo) for more control over visualization.
 
 
 ## Interactive Demos

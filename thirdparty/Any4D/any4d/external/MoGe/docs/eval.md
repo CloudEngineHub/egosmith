@@ -68,10 +68,8 @@ Options:
 Wrap any baseline method with [`moge.test.baseline.MGEBaselineInterface`](../moge/test/baseline.py).
 See [`baselines/`](../baselines/) for more examples.
 
-It is a good idea to check the correctness of the baseline implementation by running inference on a small set of images via [`moge/scripts/infer_baselines.py`](../moge/scripts/infer_baselines.py):
+It is a good idea to check the correctness of the baseline implementation by running inference on a small set of images via [`moge/scripts/infer_baseline.py`](../moge/scripts/infer_baseline.py):
 
-```base
-python moge/scripts/infer_baselines.py --baseline baselines/moge.py --input example_images/ --output infer_outupt/moge --pretrained Ruicheng/moge-vitl --maps --ply
+```bash
+python moge/scripts/infer_baseline.py --baseline baselines/moge.py --input example_images/ --output infer_output/moge --pretrained Ruicheng/moge-vitl --maps --ply
 ```
-
-
