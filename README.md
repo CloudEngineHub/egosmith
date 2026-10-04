@@ -104,8 +104,9 @@ Each release records its hand-pose coordinate frame as `hand_frame` in
 `meta/egosmith_provenance.json`. With `camera`, hand poses are expressed in the
 current frame's head-camera coordinates; with `world`, they are in the episode's
 SLAM world frame and the per-frame world-to-camera matrix maps them into the
-current frame's head camera. Actions describe the next-frame hand pose in the
-same frame as the state. The converter in this repository defaults to `world`.
+current frame's head camera. Actions describe next-frame hand poses in the
+state's coordinate frame (`camera`: frame `t`'s head camera; `world`: SLAM world).
+The converter defaults to `world`.
 
 ### Loading annotations
 
