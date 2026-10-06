@@ -210,9 +210,9 @@ responsible for complying with each dependency's license.
 If you find our paper or this repository helpful in your research or project, please consider citing our work using the following BibTeX citation:
 
 ```tex
-@misc{zhong2026egosteerfullstacksteerabledexterous,
+@misc{zhong2026egosteeropensourcefullstacksteerable,
       title={EgoSteer: An Open-Source Full-Stack System Towards Steerable Dexterous Manipulation from Egocentric Videos},
-      author={Yifan Zhong and Zhang Chen and Tianrui Guan and Fanlian Zeng and Yuyao Ye and Tianjia He and Ka Nam Lui and Jiayi Li and Tingrui Zhang and Ruilin Yan and Xinhao Ji and Guangyu Zhao and Wenjie Lou and Jiayuan Zhang and Yuanpei Chen and Yaodong Yang},
+      author={Yifan Zhong and Zhang Chen and Tianrui Guan and Fanlian Zeng and Ka Nam Lui and Yuyao Ye and Tingrui Zhang and Jiayi Li and Tianjia He and Wenjie Lou and Ruilin Yan and Xinhao Ji and Guangyu Zhao and Jiayuan Zhang and Wenxi Xu and Chengdong Ma and Yuanpei Chen and Yaodong Yang},
       year={2026},
       eprint={2607.09701},
       archivePrefix={arXiv},
